@@ -88,7 +88,16 @@ module.exports = (robot) ->
   # yodiz bot format
   robot.hear /Recent activity in/, (msg) ->
     # if(workReportChannels.indexOf(get_channel(msg)) >= 0)
-    msg.send msg.match[0]
+    message = msg.message.text
+    console.log message
+    list = message.split('\n')
+    i = 0
+    while i < list.length
+      msg.send list[i]
+      console.log list[i]
+      i++
+
+
 
   ###
   # demo of replying to specific messages
@@ -144,10 +153,10 @@ module.exports = (robot) ->
   # Demonstration of how to parse private messages
   ###
   # responds to all private messages with a mean remark
-  robot.hear /./i, (msg) ->
+  # robot.hear /./i, (msg) ->
     # you can chain if clauses on the end of a statement in coffeescript to make things look cleaner
     # in a direct message, the channel name and author are the same
-    msg.send 'shoo!' if get_channel(msg) == get_username(msg)
+    # msg.send 'shoo!' if get_channel(msg) == get_username(msg)
 
   # any message above not yet processed falls here. See the console to examine the object
   # uncomment to test this
