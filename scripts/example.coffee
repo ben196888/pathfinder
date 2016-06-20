@@ -11,6 +11,7 @@
 # Author:
 #   Michi Kono
 #
+HubotSlack = require('hubot-slack')
 Spreadsheet = require('edit-google-spreadsheet')
 # creds = Object.create(
 #   'client_id': process.env.GOOGLE_CLIENT_ID
@@ -86,19 +87,25 @@ module.exports = (robot) ->
       msg.send msg.random ['welcome', 'hello', 'who are you?']
 
   # yodiz bot format
-  robot.hear /Recent activity in/, (msg) ->
+  yodizRegex = /Recent activity in/
+  robot.hear yodizRegex, (msg) ->
     # if(workReportChannels.indexOf(get_channel(msg)) >= 0)
-    message = msg.message.text
-    console.log message
-    list = message.split('\n')
-    i = 0
-    while i < list.length
-      msg.send list[i]
-      console.log list[i]
-      i++
+    robot.emit "work-report", msg
+    
+  robot.listeners.push new HubotSlack.SlackBotListener robot, yodizRegex, (msg) ->
+    robot.emit "work-report", msg
 
-
-
+  robot.on "work-report", (msg) ->
+    try
+      message = msg.message.text
+      console.log message
+      list = message.split('\n')
+      i = 0
+      while i < list.length
+        msg.send list[i]
+        console.log list[i]
+        i++
+    catch error
   ###
   # demo of replying to specific messages
   # replies to any message containing an "!" with an exact replica of that message
