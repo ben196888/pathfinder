@@ -11,6 +11,33 @@
 # Author:
 #   Michi Kono
 #
+Spreadsheet = require('edit-google-spreadsheet')
+# creds = Object.create(
+#   'client_id': process.env.GOOGLE_CLIENT_ID
+#   'client_secret': process.env.GOOGLE_CLIENT_SECRET
+#   'refresh_token': process.env.GOOGLE_REFRESH_TOKEN)
+creds = require('../oauth2.cred.json')
+workReportChannels = require('../workReportChannels.json').channels
+
+# Spreadsheet.load {
+#   debug: true
+#   oauth2: creds
+#   spreadsheetName: 'gevent'
+#   worksheetName: 'sorted_pure'
+# }, (err, spreadsheet) ->
+#   if err
+#     throw err
+#   #receive all cells
+#   spreadsheet.receive { getValues: false }, (err, rows, info) ->
+#     if err
+#       throw err
+#     console.log 'Found rows:', rows
+#     console.log 'With info:', info
+#     return
+#   return
+
+
+
 module.exports = (robot) ->
   # helper method to get sender of the message
   get_username = (response) ->
@@ -41,14 +68,14 @@ module.exports = (robot) ->
   # /STUFF/ means match things between the slashes. the stuff between the slashes = regular expression.
   # \b is a word boundary, and basically putting it on each side of a phrase ensures we are matching against
   # the word "up" instead of a partial text match such as in "sup"
-  robot.hear /\bup\b/, (msg) ->
+  # robot.hear /\bup\b/, (msg) ->
     # note that this variable is *GLOBAL TO ALL SCRIPTS* so choose a unique name
-    robot.brain.set('everything_uppity_count', (robot.brain.get('everything_uppity_count') || 0) + 1)
+    # robot.brain.set('everything_uppity_count', (robot.brain.get('everything_uppity_count') || 0) + 1)
 
   # ? is a special character in regex so it needs to be escaped with a \
   # the i on the end means "case *insensitive*"
-  robot.hear /are we up\?/i, (msg) ->
-    msg.send "Up-ness: " + (robot.brain.get('everything_uppity_count') || "0")
+  # robot.hear /are we up\?/i, (msg) ->
+  #   msg.send "Up-ness: " + (robot.brain.get('everything_uppity_count') || "0")
 
   # A script to watch a channel's new members
   channel_to_watch = '#bot-test'
@@ -57,6 +84,11 @@ module.exports = (robot) ->
     if(get_channel(msg) == channel_to_watch)
       # https://github.com/github/hubot/blob/master/docs/scripting.md#random
       msg.send msg.random ['welcome', 'hello', 'who are you?']
+
+  # yodiz bot format
+  robot.hear /Recent activity in/, (msg) ->
+    # if(workReportChannels.indexOf(get_channel(msg)) >= 0)
+    msg.send msg.match[0]
 
   ###
   # demo of replying to specific messages
@@ -76,15 +108,15 @@ module.exports = (robot) ->
   # More on this here: https://github.com/github/hubot/blob/master/docs/scripting.md#http-listener
   ###
   # robot.router.get should probably be a .post to prevent spiders from making it fire
-  robot.router.get '/hubot/my-custom-url/:room', (req, res) ->
-    robot.emit "bug-me", {
-      room: req.params.room
-      # note the REMOVE THIS PART in this example -- since we are using a GET and the link is being published in the chat room
-      # it can cause an infinite loop since slack itself pre-fetches URLs it sees
-      source: "a HTTP call to #{process.env.HEROKU_URL or ''}[/ REMOVE THIS PART ]/hubot/my-custom-url/#{req.params.room} (could be any room name)"
-    }
-    # reply to the browser
-    res.send 'OK'
+  # robot.router.get '/hubot/my-custom-url/:room', (req, res) ->
+  #   robot.emit "bug-me", {
+  #     room: req.params.room
+  #     # note the REMOVE THIS PART in this example -- since we are using a GET and the link is being published in the chat room
+  #     # it can cause an infinite loop since slack itself pre-fetches URLs it sees
+  #     source: "a HTTP call to #{process.env.HEROKU_URL or ''}[/ REMOVE THIS PART ]/hubot/my-custom-url/#{req.params.room} (could be any room name)"
+  #   }
+  #   # reply to the browser
+  #   res.send 'OK'
 
   ###
   # Secondary example of triggering a custom event
