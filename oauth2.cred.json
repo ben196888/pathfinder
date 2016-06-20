@@ -1,0 +1,5 @@
+{
+  "client_id": "0000000000-asdfasdfasdfasdfasdfasdfasdfasdf.apps.googleusercontent.com",
+  "client_secret": "asdfasdfasdasdf-asdfasd",
+  "refresh_token": "token_generated_by_get_oath2_permissions"
+}

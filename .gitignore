@@ -1,5 +1,4 @@
 node_modules
 .DS_Store*
 .hubot_history
-oauth2.cred.json
 gapps.hbis.cred.json
