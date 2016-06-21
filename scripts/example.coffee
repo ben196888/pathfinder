@@ -98,19 +98,19 @@ module.exports = (robot) ->
   robot.on "work-report", (msg) ->
     try
       message = msg.message.text
-      console.log 'I hear something'
       list = message.replace(/_/g, ' ').replace(/\*/g, ' ').split('\n')
       actionsList = []
       activity = {}
       activitiesList = []
       # Foreach row
-      console.log list
-      for i in list
-        i = i.replace(/^\s+/, '')
-        if i.startsWith('Recent')
+      i = 0
+      while i < list.length
+        list[i] = list[i].replace(/^\s+/, '').replace(/\s+$/, '')
+        console.log list[i]
+        if list[i].startsWith('Recent')
           # Title handler
           console.log "In title handler"
-          projectName = i.match(/Recent activity in\s+Project:\s+(.*)/)[1]
+          projectName = list[i].match(/Recent activity in\s+Project:\s+(.*)/)[1]
           console.log "Got project name: #{projectName}"
           # Push activity to activitiesList first
           if Object.keys(activity).length > 0
@@ -120,12 +120,12 @@ module.exports = (robot) ->
             activitiesList.push activity
             activity = {}
           activity['projectName'] = projectName
-        else if i.startsWith('>')
-          # Effort handler
-          console.log "In effort handler"
-          action = {}
-          tmp = i.replace('>', '').split(' by ')
+        else if list[i].startsWith('>')
+          # Action handler
+          console.log "In action handler"
+          tmp = list[i].replace('>', '').split(' by ')
           if tmp.length == 2
+            # Can parse action
             user = tmp[1].split('(')[0].replace(/\s+$/, '')
             content = tmp[0].replace(/\s+$/, '')
             action =
@@ -133,6 +133,8 @@ module.exports = (robot) ->
               content: content
               data: null
             if content.match(/effort logged/i)
+              # Effort action
+              console.log "In effort parser"
               effort = content.split(':')[1].replace(/^\s+/, '')
               result = effort.match(/(([\d]+) hours)?\s?(([\d]+) minutes)?/)
               hours = parseInt(result[2]) or 0
@@ -146,16 +148,18 @@ module.exports = (robot) ->
                   hours: hours
                   minutes: minutes
           else
+            # Cannot parse action
             console.log "Cannot parse data G___G"
             action =
               user: null
               content: null
-              data: i
+              data: list[i]
+          console.log "Push an action"
           actionsList.push action
         else
           # Task handler
           console.log "In task handler"
-          tmp = i.split('(')
+          tmp = list[i].split('(')
           taskUrl = ''
           if tmp.length == 2
             taskUrl = tmp[1].replace(/\)\s+/, '')
@@ -166,20 +170,28 @@ module.exports = (robot) ->
             url: taskUrl
             id: taskId
             name: taskName
+        i++
       if Object.keys(activity).length > 0
         activity['actions'] = actionsList
         actionsList = []
         console.log 'I push an activity'
         activitiesList.push activity
         activity = {}
-      robot.emit "send-report", a for a in activitiesList.filter((x) -> x if x.efforts?)
+      robot.emit "send-report", {activity: a, msg: msg} for a in activitiesList.filter((x) -> x if x.efforts?)
     catch error
+      console.log error
   
-  robot.on "send-report", (activity) ->
+  robot.on "send-report", (data) ->
     try
-      robot.send "Project: #{activity.projectName}, User: #{activity.actions[0].user}, Effort: #{activity.efforts.hours}h#{activity.efforts.minutes}"
+      activity = data.activity
+      msg = data.msg
+      name = activity.projectName
+      user = activity.actions[0].user
+      h = activity.efforts.hours
+      m = activity.efforts.minutes
+      msg.send "Project: #{name}, User: #{user}, Effort: #{h} h #{m} m"
     catch e
-      # ...
+      console.log e
     
   ###
   # demo of replying to specific messages
