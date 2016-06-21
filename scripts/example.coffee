@@ -97,24 +97,32 @@ module.exports = (robot) ->
 
   robot.on "work-report", (msg) ->
     try
-      message = msg.message
+      message = msg.message.text
+      console.log 'I hear something'
       list = message.replace(/_/g, ' ').replace(/\*/g, ' ').split('\n')
       actionsList = []
       activity = {}
       activitiesList = []
       # Foreach row
+      console.log list
       for i in list
-        # Title handler
+        i = i.replace(/^\s+/, '')
         if i.startsWith('Recent')
+          # Title handler
+          console.log "In title handler"
           projectName = i.match(/Recent activity in\s+Project:\s+(.*)/)[1]
+          console.log "Got project name: #{projectName}"
           # Push activity to activitiesList first
           if Object.keys(activity).length > 0
             activity['actions'] = actionsList
             actionsList = []
+            console.log 'I push an activity'
             activitiesList.push activity
             activity = {}
           activity['projectName'] = projectName
         else if i.startsWith('>')
+          # Effort handler
+          console.log "In effort handler"
           action = {}
           tmp = i.replace('>', '').split(' by ')
           if tmp.length == 2
@@ -129,6 +137,7 @@ module.exports = (robot) ->
               result = effort.match(/(([\d]+) hours)?\s?(([\d]+) minutes)?/)
               hours = parseInt(result[2]) or 0
               minutes = parseInt(result[4]) or 0
+              console.log "I got effort"
               if activity.efforts
                 activity.efforts['hours'] += hours
                 activity.efforts['minutes'] += minutes
@@ -137,12 +146,15 @@ module.exports = (robot) ->
                   hours: hours
                   minutes: minutes
           else
+            console.log "Cannot parse data G___G"
             action =
               user: null
               content: null
               data: i
           actionsList.push action
         else
+          # Task handler
+          console.log "In task handler"
           tmp = i.split('(')
           taskUrl = ''
           if tmp.length == 2
@@ -157,9 +169,10 @@ module.exports = (robot) ->
       if Object.keys(activity).length > 0
         activity['actions'] = actionsList
         actionsList = []
+        console.log 'I push an activity'
         activitiesList.push activity
         activity = {}
-      robot.emit "send-report" a for a in activitiesList.filter((x) -> x if x.efforts?)
+      robot.emit "send-report", a for a in activitiesList.filter((x) -> x if x.efforts?)
     catch error
   
   robot.on "send-report", (activity) ->
