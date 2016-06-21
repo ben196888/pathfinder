@@ -97,6 +97,7 @@ module.exports = (robot) ->
 
   robot.on "work-report", (msg) ->
     try
+<<<<<<< Updated upstream
       message = msg.message.text
       console.log message
       list = message.split('\n')
@@ -106,6 +107,79 @@ module.exports = (robot) ->
         console.log list[i]
         i++
     catch error
+=======
+      message = msg.message
+      list = message.replace(/_/g, ' ').replace(/\*/g, ' ').split('\n')
+      actionsList = []
+      activity = {}
+      activitiesList = []
+      # Foreach row
+      for i in list
+        # Title handler
+        if i.startsWith('Recent')
+          projectName = i.match(/Recent activity in\s+Project:\s+(.*)/)[1]
+          # Push activity to activitiesList first
+          if Object.keys(activity).length > 0
+            activity['actions'] = actionsList
+            actionsList = []
+            activitiesList.push activity
+            activity = {}
+          activity['projectName'] = projectName
+        else if i.startsWith('>')
+          action = {}
+          tmp = i.replace('>', '').split(' by ')
+          if tmp.length == 2
+            user = tmp[1].split('(')[0].replace(/\s+$/, '')
+            content = tmp[0].replace(/\s+$/, '')
+            action =
+              user: user
+              content: content
+              data: null
+            if content.match(/effort logged/i)
+              effort = content.split(':')[1].replace(/^\s+/, '')
+              result = effort.match(/(([\d]+) hours)?\s?(([\d]+) minutes)?/)
+              hours = parseInt(result[2]) or 0
+              minutes = parseInt(result[4]) or 0
+              if activity.efforts
+                activity.efforts['hours'] += hours
+                activity.efforts['minutes'] += minutes
+              else
+                activity['efforts'] =
+                  hours: hours
+                  minutes: minutes
+          else
+            action =
+              user: null
+              content: null
+              data: i
+          actionsList.push action
+        else
+          tmp = i.split('(')
+          taskUrl = ''
+          if tmp.length == 2
+            taskUrl = tmp[1].replace(/\)\s+/, '')
+          tmp = tmp[0].split(':')
+          taskId = tmp[0].replace(/^\s+/, '').replace(/\s+$/, '')
+          taskName = tmp[1].replace(/^\s+/, '').replace(/\s+$/, '')
+          activity['task'] =
+            url: taskUrl
+            id: taskId
+            name: taskName
+      if Object.keys(activity).length > 0
+        activity['actions'] = actionsList
+        actionsList = []
+        activitiesList.push activity
+        activity = {}
+      robot.emit a for a in activitiesList.filter((x) -> x if x.efforts?)
+    catch error
+  
+  robot.on "send-report", (activity) ->
+    try
+      robot.send "Project: #{activity.projectName}, User: #{activity.actions[0].user}, Effort: #{activity.efforts.hours}h#{activity.efforts.minutes}"
+    catch e
+      # ...
+    
+>>>>>>> Stashed changes
   ###
   # demo of replying to specific messages
   # replies to any message containing an "!" with an exact replica of that message
