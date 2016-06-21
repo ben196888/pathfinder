@@ -97,17 +97,6 @@ module.exports = (robot) ->
 
   robot.on "work-report", (msg) ->
     try
-<<<<<<< Updated upstream
-      message = msg.message.text
-      console.log message
-      list = message.split('\n')
-      i = 0
-      while i < list.length
-        msg.send list[i]
-        console.log list[i]
-        i++
-    catch error
-=======
       message = msg.message
       list = message.replace(/_/g, ' ').replace(/\*/g, ' ').split('\n')
       actionsList = []
@@ -179,7 +168,6 @@ module.exports = (robot) ->
     catch e
       # ...
     
->>>>>>> Stashed changes
   ###
   # demo of replying to specific messages
   # replies to any message containing an "!" with an exact replica of that message
