@@ -107,7 +107,8 @@ module.exports = (robot) ->
       while i < list.length
         list[i] = list[i].replace(/^\s+/, '').replace(/\s+$/, '')
         console.log list[i]
-        if list[i].startsWith('Recent')
+        if list[i].indexOf('Recent') == 0
+        # if list[i].startsWith('Recent')
           # Title handler
           console.log "In title handler"
           projectName = list[i].match(/Recent activity in\s+Project:\s+(.*)/)[1]
@@ -120,7 +121,8 @@ module.exports = (robot) ->
             activitiesList.push activity
             activity = {}
           activity['projectName'] = projectName
-        else if list[i].startsWith('>')
+        else if list[i].indexOf('>') == 0
+        # else if list[i].startsWith('>')
           # Action handler
           console.log "In action handler"
           tmp = list[i].replace('>', '').split(' by ')
