@@ -159,7 +159,7 @@ module.exports = (robot) ->
         actionsList = []
         activitiesList.push activity
         activity = {}
-      robot.emit a for a in activitiesList.filter((x) -> x if x.efforts?)
+      robot.emit "send-report" a for a in activitiesList.filter((x) -> x if x.efforts?)
     catch error
   
   robot.on "send-report", (activity) ->
