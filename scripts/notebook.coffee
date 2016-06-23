@@ -81,7 +81,9 @@ module.exports = (robot) ->
           return
         notebook = "#{channel}.#{nbName}"
         nb = robot.brain.get notebook
-        msg.send nb.map((x) -> x.content).toString()
+        content = nb.map((x) -> x.content)
+        message = if content.length > 0 then content.toString() else "Nothing here"
+        msg.send message
 
       when "addnt"
         nbName = ''
