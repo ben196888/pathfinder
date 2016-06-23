@@ -71,27 +71,27 @@ module.exports = (robot) ->
 
       when "show"
         # Ignore target
-        nbName = if content? and content != '' then content else nbDict[channel][0]
+        nbName = ''
+        nbName = content if content? and content != ''
+        nbName = nbDict[channel][0] if nbName == '' and nbDict[channel].length > 0
         index = nbDict[channel].indexOf(nbName)
-        if index >= 0
-          nbDict[channel].unshift(nbDict[channel].splice(index, 1)[0]) if index > 0
-          notebook = "#{channel}.#{nbName}"
-          nb = robot.brain.get notebook
-          msg.send nb.map((x) -> x.content).toString()
-        else
-          msg.send "No notebook named #{nbName}"
-
-      when "addnt"
-        if target? and target != ''
-          index = nbDict[channel].indexOf(target)
-          if index < 0
-            msg.send "No notebook named #{target}"
-            return
-          nbDict[channel].unshift(nbDict[channel].splice(index, 1)[0]) if index > 0
-        if nbDict[channel].length <= 0
+        nbDict[channel].unshift(nbDict[channel].splice(index, 1)[0]) if index > 0
+        if index < 0
           msg.send "No notebook available"
           return
-        nbName = nbDict[channel][0]
+        notebook = "#{channel}.#{nbName}"
+        nb = robot.brain.get notebook
+        msg.send nb.map((x) -> x.content).toString()
+
+      when "addnt"
+        nbName = ''
+        nbName = target if target? and target != ''
+        nbName = nbDict[channel][0] if nbName == '' and nbDict[channel].length > 0
+        index = nbDict[channel].indexOf(nbName)
+        nbDict[channel].unshift(nbDict[channel].splice(index, 1)[0]) if index > 0
+        if index < 0
+          msg.send "No notebook available"
+          return
         notebook = "#{channel}.#{nbName}"
         note =
           user: user
