@@ -4,7 +4,8 @@
   "private": true,
   "author": "Ben Liu <ben.liu@hopebaytech.com>",
   "scripts": {
-    "start": "./bin/hubot"
+    "start": "./bin/hubot",
+    "test": "mocha --compilers 'coffee:coffee-script/register' test/*.coffee --timeout 15000"
   },
   "description": "A simple helpful robot for your Company",
   "dependencies": {
@@ -27,6 +28,11 @@
     "node": "0.10.x"
   },
   "devDependencies": {
-    "hubot-test-helper": "^1.4.4"
+    "bluebird": "^3.4.1",
+    "chai": "^3.5.0",
+    "co": "^4.6.0",
+    "coffee-script": "^1.10.0",
+    "hubot-test-helper": "^1.4.4",
+    "mocha": "^2.5.3"
   }
 }
