@@ -68,7 +68,7 @@ module.exports = (robot) ->
               # Effort action
               console.log "In effort parser"
               effort = content.split(':')[1].replace(/^\s+/, '')
-              result = effort.match(/(([\d]+) hours)?\s?(([\d]+) minutes)?/)
+              result = effort.match(/(([\d]+) hours?)?\s?(([\d]+) minutes?)?/)
               hours = parseInt(result[2]) or 0
               minutes = parseInt(result[4]) or 0
               console.log "I got effort"
