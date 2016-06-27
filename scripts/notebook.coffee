@@ -26,14 +26,16 @@ module.exports = (robot) ->
     switch action
       when "help"
         # Ignore target
-        msg.send("note help                          - show tips\n" +
+        msg.send("```\n" +
+                 "note help                          - show tips\n" +
                  "note list                          - list all nb in this channel\n" +
                  "note create <notebook>             - create a nb\n" + 
                  "note delete <notebook>             - delete a nb\n" +
                  "note show <notebook>               - show notes in the nb\n" + 
                  "note show                          - show notes in the nb recently used\n" +
                  "note addnt <some_notes>            - add note into the nb recently used\n" +
-                 "note (notebook) addnt <some_notes> - add note into the nb")
+                 "note (notebook) addnt <some_notes> - add note into the nb\n" +
+                 "```")
 
       when "list"
         # Ignore target
@@ -85,7 +87,7 @@ module.exports = (robot) ->
         notebook = "#{channel}.#{nbName}"
         nb = robot.brain.get notebook
         content = nb.map((x) -> x.content)
-        message = if content.length > 0 then content.toString() else "Nothing here"
+        message = if content.length > 0 then content.reduce((pre, cur) -> pre + '\n' + cur) else "Nothing here"
         msg.send message
 
       when "addnt"
