@@ -26,14 +26,14 @@ module.exports = (robot) ->
     switch action
       when "help"
         # Ignore target
-        msg.send("note help\n" +
-                 "note list\n" +
-                 "note create <notebook>\n" + 
-                 "note delete <notebook>\n" +
-                 "note show <notebook>\n" + 
-                 "note show\n" +
-                 "note addnt <some_notes>\n" +
-                 "note (notebook) addnt <some_notes>")
+        msg.send("note help                          - show tips\n" +
+                 "note list                          - list all nb in this channel\n" +
+                 "note create <notebook>             - create a nb\n" + 
+                 "note delete <notebook>             - delete a nb\n" +
+                 "note show <notebook>               - show notes in the nb\n" + 
+                 "note show                          - show notes in the nb recently used\n" +
+                 "note addnt <some_notes>            - add note into the nb recently used\n" +
+                 "note (notebook) addnt <some_notes> - add note into the nb")
 
       when "list"
         # Ignore target
@@ -79,6 +79,8 @@ module.exports = (robot) ->
         if index < 0
           msg.send "No notebook available"
           return
+        if nbName.match(/me the money/)
+          msg.send "I have no money, don't rob me. :elf:"
         notebook = "#{channel}.#{nbName}"
         nb = robot.brain.get notebook
         content = nb.map((x) -> x.content)
@@ -104,4 +106,4 @@ module.exports = (robot) ->
         msg.send "note added"
 
       else
-        msg.send "I don't know what should I do."
+        msg.send "I don't know what I should do."
