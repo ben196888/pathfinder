@@ -74,13 +74,14 @@ module.exports = (robot) ->
         nbName = ''
         nbName = content if content? and content != ''
         nbName = nbDict[channel][0] if nbName == '' and nbDict[channel].length > 0
+        if nbName.match(/me the money/)
+          msg.send "I have no money, don't rob me. :elf:"
+          return
         index = nbDict[channel].indexOf(nbName)
         nbDict[channel].unshift(nbDict[channel].splice(index, 1)[0]) if index > 0
         if index < 0
           msg.send "No notebook available"
           return
-        if nbName.match(/me the money/)
-          msg.send "I have no money, don't rob me. :elf:"
         notebook = "#{channel}.#{nbName}"
         nb = robot.brain.get notebook
         content = nb.map((x) -> x.content)
