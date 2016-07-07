@@ -91,7 +91,7 @@ module.exports = (robot) ->
         notebook = "#{channel}.#{nbName}"
         nb = robot.brain.get notebook
         content = nb.map((x) -> x.content)
-        message = if content.length > 0 then content.reduce((pre, cur, curId) -> pre + '\n' + curId + ', ' + cur) else "Nothing here"
+        message = if content.length > 0 then content.reduce((pre, cur, curId) -> pre + '\n' + curId + ', ' + cur, '0, ') else "Nothing here"
         msg.send message
 
       when "addnt"
