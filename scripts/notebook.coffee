@@ -35,6 +35,10 @@ module.exports = (robot) ->
                  "note show                          - show notes in the nb recently used\n" +
                  "note addnt <some_notes>            - add note into the nb recently used\n" +
                  "note (notebook) addnt <some_notes> - add note into the nb\n" +
+                 "note rmnt                          - remove last note in nb recently used\n" +
+                 "note (notebook) rmnt               - remove last note in the nb\n" +
+                 "note rmnt <note_id>                - remove note in the nb recently used\n" +
+                 "note (notebook) rmnt <note_id>     - remove note in the nb\n" +
                  "```")
 
       when "list"
@@ -87,7 +91,7 @@ module.exports = (robot) ->
         notebook = "#{channel}.#{nbName}"
         nb = robot.brain.get notebook
         content = nb.map((x) -> x.content)
-        message = if content.length > 0 then content.reduce((pre, cur) -> pre + '\n' + cur) else "Nothing here"
+        message = if content.length > 0 then content.reduce((pre, cur, curId) -> pre + '\n' + curId + ', ' + cur) else "Nothing here"
         msg.send message
 
       when "addnt"
@@ -103,10 +107,29 @@ module.exports = (robot) ->
         note =
           user: user
           content: content
-        nbList = robot.brain.get notebook
-        robot.brain.set notebook, nbList
-        nbList.push(note)
+        ntList = robot.brain.get notebook
+        robot.brain.set notebook, ntList
+        ntList.push(note)
         msg.send "note added"
+
+      when "rmnt"
+        nbName = ''
+        nbName = target if target? and target != ''
+        nbName = nbDict[channel][0] if nbName == '' and nbDict[channel].length > 0
+        index = nbDict[channel].indexOf(nbName)
+        nbDict[channel].unshift(nbDict[channel].splice(index, 1)[0]) if index > 0
+        if index < 0
+          msg.send "No notebook available"
+          return
+        notebook = "#{channel}.#{nbName}"
+        ntList = robot.brain.get notebook
+        ntId = ntList.length - 1
+        ntId = parseInt(content.match(/(\d+)/)[0]) if content? and content != '' and content.match(/(\d+)/)
+        if ntId < 0
+          msg.send "No note is removable"
+          return
+        ntList.splice(ntId, 1) if ntId >= 0
+        msg.send "note removed"
 
       else
         msg.send "I don't know what I should do."
