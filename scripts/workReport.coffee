@@ -36,25 +36,25 @@ module.exports = (robot) ->
       # Foreach row
       for item in list
         item = item.replace(/^\s+/, '').replace(/\s+$/, '')
-        console.log item
+        # console.log item
         if item.indexOf('Recent') == 0
         # if item.startsWith('Recent')
           # Title handler
-          console.log "In title handler"
+          # console.log "In title handler"
           projectName = item.match(/Recent activity in\s+Project:\s+(.*)/)[1]
-          console.log "Got project name: #{projectName}"
+          # console.log "Got project name: #{projectName}"
           # Push activity to activitiesList first
           if Object.keys(activity).length > 0
             activity['actions'] = actionsList
             actionsList = []
-            console.log 'I push an activity'
+            # console.log 'I push an activity'
             activitiesList.push activity
             activity = {}
           activity['projectName'] = projectName
         else if item.indexOf('>') == 0
         # else if item.startsWith('>')
           # Action handler
-          console.log "In action handler"
+          # console.log "In action handler"
           tmp = item.replace('>', '').split(' by ')
           if tmp.length == 2
             # Can parse action
@@ -66,12 +66,12 @@ module.exports = (robot) ->
               data: null
             if content.match(/effort logged/i)
               # Effort action
-              console.log "In effort parser"
+              # console.log "In effort parser"
               effort = content.split(':')[1].replace(/^\s+/, '')
               result = effort.match(/(([\d]+) hours?)?\s?(([\d]+) minutes?)?/)
               hours = parseInt(result[2]) or 0
               minutes = parseInt(result[4]) or 0
-              console.log "I got effort"
+              # console.log "I got effort"
               if activity.efforts
                 activity.efforts['hours'] += hours
                 activity.efforts['minutes'] += minutes
@@ -86,11 +86,11 @@ module.exports = (robot) ->
               user: null
               content: null
               data: item
-          console.log "Push an action"
+          # console.log "Push an action"
           actionsList.push action
         else
           # Task handler
-          console.log "In task handler"
+          # console.log "In task handler"
           continue if item == ''
           tmp = item.split('(')
           taskUrl = ''
@@ -106,7 +106,7 @@ module.exports = (robot) ->
       if Object.keys(activity).length > 0
         activity['actions'] = actionsList
         actionsList = []
-        console.log 'I push an activity'
+        # console.log 'I push an activity'
         activitiesList.push activity
         activity = {}
       robot.emit "send-report", {activity: a, msg: msg} for a in activitiesList.filter((x) -> x if x.efforts?)
