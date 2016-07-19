@@ -109,7 +109,7 @@ module.exports = (robot) ->
           return
         notebook = "#{channel}.#{nbName}"
         nb = robot.brain.get notebook
-        content = nb.map((x) -> x.user + ', ' + x.content)
+        content = nb.map((x) -> x.user + ': ' + x.content)
         message = if content.length > 0 then '0, ' + content.reduce((pre, cur, curId) -> pre + '\n' + curId + ', ' + cur) else "Nothing here"
         msg.send message
 
