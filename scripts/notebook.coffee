@@ -29,19 +29,22 @@ module.exports = (robot) ->
         msg.send("```\n" +
                  "note help                          - show tips\n" +
                  "note list                          - list all nb in this channel\n" +
-                 "note create <notebook>             - create a nb\n" + 
+                 "note ls\n" +
+                 "note create <notebook>             - create a nb\n" +
                  "note delete <notebook>             - delete a nb\n" +
                  "note show <notebook>               - show notes in the nb\n" + 
                  "note show                          - show notes in the nb recently used\n" +
-                 "note addnt <some_notes>            - add note into the nb recently used\n" +
-                 "note (notebook) addnt <some_notes> - add note into the nb\n" +
-                 "note rmnt                          - remove last note in nb recently used\n" +
-                 "note (notebook) rmnt               - remove last note in the nb\n" +
-                 "note rmnt <note_id>                - remove note in the nb recently used\n" +
-                 "note (notebook) rmnt <note_id>     - remove note in the nb\n" +
+                 "note showU <notebook>              - show notes w/ username in the nb\n" + 
+                 "note showU                         - show notes w/ username in the nb recently used\n" +
+                 "note add <some_notes>              - add note into the nb recently used\n" +
+                 "note (notebook) add <some_notes>   - add note into the nb\n" +
+                 "note rm                            - remove last note in nb recently used\n" +
+                 "note (notebook) rm                 - remove last note in the nb\n" +
+                 "note rm <note_id>                  - remove note in the nb recently used\n" +
+                 "note (notebook) rm <note_id>       - remove note in the nb\n" +
                  "```")
 
-      when "list"
+      when "list", "ls"
         # Ignore target
         if nbDict[channel].length == 0
           msg.send "No notebook in this channel"
@@ -94,7 +97,23 @@ module.exports = (robot) ->
         message = if content.length > 0 then '0, ' + content.reduce((pre, cur, curId) -> pre + '\n' + curId + ', ' + cur) else "Nothing here"
         msg.send message
 
-      when "addnt"
+      when "showU"
+        # Ignore target
+        nbName = ''
+        nbName = content if content? and content != ''
+        nbName = nbDict[channel][0] if nbName == '' and nbDict[channel].length > 0
+        index = nbDict[channel].indexOf(nbName)
+        nbDict[channel].unshift(nbDict[channel].splice(index, 1)[0]) if index > 0
+        if index < 0
+          msg.send "No notebook available"
+          return
+        notebook = "#{channel}.#{nbName}"
+        nb = robot.brain.get notebook
+        content = nb.map((x) -> x.user + ', ' + x.content)
+        message = if content.length > 0 then '0, ' + content.reduce((pre, cur, curId) -> pre + '\n' + curId + ', ' + cur) else "Nothing here"
+        msg.send message
+
+      when "add"
         nbName = ''
         nbName = target if target? and target != ''
         nbName = nbDict[channel][0] if nbName == '' and nbDict[channel].length > 0
@@ -112,7 +131,7 @@ module.exports = (robot) ->
         ntList.push(note)
         msg.send "note added"
 
-      when "rmnt"
+      when "rm"
         nbName = ''
         nbName = target if target? and target != ''
         nbName = nbDict[channel][0] if nbName == '' and nbDict[channel].length > 0
