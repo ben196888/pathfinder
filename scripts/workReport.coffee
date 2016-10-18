@@ -1,8 +1,14 @@
 HubotSlack = require('hubot-slack')
 Spreadsheet = require('edit-google-spreadsheet')
+parse = require('csv-parse/lib/sync')
 
 creds = require('../oauth2.cred.json')
-workReportChannels = require('../workReportChannels.json').channels
+workReportSettings = require('../workReportSettings.json')
+workReportChannels = []
+
+for channel in Object.keys(workReportSettings)
+  if workReportChannels.indexOf(channel) < 0
+    workReportChannels.push(channel)
 
 module.exports = (robot) ->
   # helper method to get sender of the message
@@ -19,14 +25,27 @@ module.exports = (robot) ->
   # yodiz bot format
   yodizRegex = /Recent activity in/
   robot.hear yodizRegex, (msg) ->
-    if(workReportChannels.indexOf(get_channel(msg)) >= 0)
-      robot.emit "work-report", msg
+    channelName = get_channel(msg)
+    if(workReportChannels.indexOf(channelName) >= 0 && workReportSettings[channelName].formats.indexOf(yodiz))
+      robot.emit "yodiz-work-report", msg, workReportSettings[channelName]
     
   robot.listeners.push new HubotSlack.SlackBotListener robot, yodizRegex, (msg) ->
-    if(workReportChannels.indexOf(get_channel(msg)) >= 0)
-      robot.emit "work-report", msg
+    channelName = get_channel(msg)
+    if(workReportChannels.indexOf(channelName) >= 0 && workReportSettings[channelName].formats.indexOf(yodiz))
+      robot.emit "yodiz-work-report", msg, workReportSettings[channelName]
 
-  robot.on "work-report", (msg) ->
+  csvRegex = /log:/
+  robot.hear csvRegex, (msg) ->
+    channelName = get_channel(msg)
+    if(workReportChannels.indexOf(channelName) >= 0 && workReportSettings[channelName].formats.indexOf(csv))
+      robot.emit "csv-work-report", msg, workReportSettings[channelName]
+
+  robot.listeners.push new HubotSlack.SlackBotListener robot, csvRegex, (msg) ->
+    channelName = get_channel(msg)
+    if(workReportChannels.indexOf(channelName) >= 0 && workReportSettings[channelName].formats.indexOf(csv))
+      robot.emit "csv-work-report", msg, workReportSettings[channelName]
+
+  robot.on "yodiz-work-report", (msg, channel) ->
     try
       message = msg.message.text
       list = message.replace(/_/g, ' ').replace(/\*/g, ' ').split('\n')
@@ -109,31 +128,56 @@ module.exports = (robot) ->
         # console.log 'I push an activity'
         activitiesList.push activity
         activity = {}
-      robot.emit "send-report", {activity: a, msg: msg} for a in activitiesList.filter((x) -> x if x.efforts?)
+      robot.emit "send-report", {activity: a, msg: msg, channel: channel} for a in activitiesList.filter((x) -> x if x.efforts?)
       return
     catch error
       console.log error
   
+  robot.on "csv-work-report", (msg, channel) ->
+    try
+      csvRegex = /^log:\s?(.{1,})/
+      message = msg.message.text.trim()
+      csvArray = csvRegex.exec(message)
+      if csvArray
+        # result is a 2D array
+        result = parse(csvArray[1])
+        # <projectName>, <loggedHours>, <completionDate>, <content>
+        for row in result
+          activity =
+            datatime: null
+            projectName: null
+            user: null
+            content: null
+            efforts:
+              hours: 0
+              minutes: 0
+          activity.user = get_username(msg)
+          activity.projectName = row[0]
+          activity.efforts.hours = row[1]
+          activity.datetime = (new Date(row[2])).toISOString()
+          activity.content = row[3]
+          robot.emit "send-report", {activity: activity, msg: msg, channel: channel}
+    catch error
+      console.log error
+
   robot.on "send-report", (data) ->
     try
+      today = new Date
       activity = data.activity
       msg = data.msg
+      channel = data.channel
+      datatime = activity.datetime || today.toISOString()
       project = activity.projectName
-      user = activity.actions[0].user
-      content = activity.task.name
+      user = activity.user || activity.actions[0].user
+      content = activity.content || activity.task.name
       h = activity.efforts.hours
       m = activity.efforts.minutes
       effort = h + m/60.0
-
-      spreadsheetId = '158nDB36KqKEFpWTn8DpuOtJM_vOpTMtys_RQeMAOJhI'
-      worksheetName = 'SlackResponse'
-
       spreadsheetInfo =
         debug: true
         oauth2: creds
-        spreadsheetId: spreadsheetId
-        worksheetName: worksheetName
-
+        spreadsheetId: channel.spreadSheetId
+        worksheetName: channel.worksheetName
       Spreadsheet.load spreadsheetInfo, (err, spreadsheet) ->
         if err
           throw err
@@ -145,10 +189,9 @@ module.exports = (robot) ->
           Spreadsheet.load spreadsheetInfo, (err, spreadsheet) ->
             if err
               throw err
-            datetime = new Date
             row = {}
             row[nextRow] =
-              1: datetime.toISOString()
+              1: datetime
               2: user
               3: project
               4: content

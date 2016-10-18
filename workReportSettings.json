@@ -1,0 +1,8 @@
+{
+  "#bot-test":
+  {
+    "spreadSheetId": "asdfghjklasdfghjklasdfghjkasdfghjkasdfghjkas",
+    "worksheetName": "SheetName",
+    "formats": ["csv", "yodiz"]
+  }
+}
