@@ -151,22 +151,23 @@ module.exports = (robot) ->
             efforts:
               hours: 0
               minutes: 0
+            completionDate: null
           activity.user = get_username(msg)
           activity.projectName = row[0]
           activity.efforts.hours = row[1]
-          activity.datetime = (new Date(row[2])).toISOString()
-          activity.content = row[3]
+          activity.completionDate = (new Date(row[2])).toISOString()
+          activity.content = row[4]
           robot.emit "send-report", {activity: activity, msg: msg, channel: channel}
     catch error
       console.log error
 
   robot.on "send-report", (data) ->
     try
-      today = new Date
+      today = (new Date).toISOString()
       activity = data.activity
       msg = data.msg
       channel = data.channel
-      datatime = activity.datetime || today.toISOString()
+      completionDate = activity.completionDate || today
       project = activity.projectName
       user = activity.user || activity.actions[0].user
       content = activity.content || activity.task.name
@@ -191,11 +192,12 @@ module.exports = (robot) ->
               throw err
             row = {}
             row[nextRow] =
-              1: datetime
+              1: today
               2: user
               3: project
               4: content
               5: effort
+              6: completionDate
             spreadsheet.add row
             spreadsheet.send (err) ->
               if err
